@@ -1,77 +1,61 @@
 import os
-import sys
 import logging
 from telegram import Update
-from telegram.ext import (
-    Application, 
-    CommandHandler, 
-    MessageHandler, 
-    CallbackQueryHandler,
-    filters,
-    ContextTypes
-)
-from app.config import Config, logger
-from app.handlers import (
-    start_command, help_command, about_command, 
-    lead_command, status_command, cancel_command, 
-    reset_command, handle_message, button_callback
-)
+from telegram.ext import Application, CommandHandler, ContextTypes
 
-def setup_application() -> Application:
-    """Setup and configure the bot application"""
-    
-    try:
-        # Validate configuration
-        Config.validate()
-        logger.info("✅ Configuration validated successfully")
-    except ValueError as e:
-        logger.error(f"❌ Configuration error: {e}")
-        sys.exit(1)
-    
-    # Create application
-    application = Application.builder().token(Config.TELEGRAM_BOT_TOKEN).build()
-    
-    # Register command handlers
-    application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("about", about_command))
-    application.add_handler(CommandHandler("lead", lead_command))
-    application.add_handler(CommandHandler("status", status_command))
-    application.add_handler(CommandHandler("cancel", cancel_command))
-    application.add_handler(CommandHandler("reset", reset_command))
-    
-    # Register message handler
-    application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Get token from environment
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+
+if not TOKEN:
+    logger.error("❌ TELEGRAM_BOT_TOKEN environment variable is not set!")
+    logger.error("Please add it in Railway's Variables tab")
+    exit(1)
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /start command"""
+    await update.message.reply_text(
+        "✅ Bot is working!\n\n"
+        "Use /lead to start lead capture\n"
+        "Use /help for more commands"
     )
-    
-    # Register callback handler
-    application.add_handler(CallbackQueryHandler(button_callback))
-    
-    return application
+
+async def lead(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /lead command"""
+    await update.message.reply_text(
+        "🔄 Lead capture started!\n\n"
+        "Please answer these questions:\n"
+        "1. What's your email?\n"
+        "2. What's your company?\n"
+        "3. What's your budget?"
+    )
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /help command"""
+    await update.message.reply_text(
+        "🤖 Available commands:\n"
+        "/start - Start the bot\n"
+        "/lead - Start lead capture\n"
+        "/help - Show this help"
+    )
 
 def main():
-    """Main entry point"""
-    try:
-        logger.info("🚀 Starting AiAgentApiBot...")
-        logger.info(f"Environment: {Config.ENVIRONMENT}")
-        logger.info(f"Bot Username: {Config.BOT_USERNAME}")
-        
-        # Setup application
-        application = setup_application()
-        
-        # Start bot
-        logger.info("✅ Bot is ready and polling for updates...")
-        application.run_polling(
-            allowed_updates=Update.ALL_TYPES,
-            drop_pending_updates=True
-        )
-        
-    except Exception as e:
-        logger.error(f"❌ Fatal error: {e}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
+    """Main function"""
+    logger.info("🚀 Starting bot...")
+    
+    # Create application
+    app = Application.builder().token(TOKEN).build()
+    
+    # Add handlers
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("lead", lead))
+    app.add_handler(CommandHandler("help", help_command))
+    
+    logger.info("✅ Bot is running! Waiting for messages...")
+    app.run_polling()
 
 if __name__ == "__main__":
     main()
