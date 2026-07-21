@@ -17,9 +17,9 @@ COPY . .
 # Create data directory
 RUN mkdir -p /app/data
 
-# Set environment variables
+# Set environment variables (non-sensitive only)
 ENV PYTHONUNBUFFERED=1
 ENV ENVIRONMENT=production
 
-# Run the bot
+# Run the bot - token will be passed via Railway variables
 CMD ["python", "-m", "app.main"]
