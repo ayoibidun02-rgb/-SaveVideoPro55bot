@@ -20,8 +20,13 @@ from app.handlers import (
 def setup_application() -> Application:
     """Setup and configure the bot application"""
     
-    # Validate configuration
-    Config.validate()
+    try:
+        # Validate configuration
+        Config.validate()
+        logger.info("✅ Configuration validated successfully")
+    except ValueError as e:
+        logger.error(f"❌ Configuration error: {e}")
+        sys.exit(1)
     
     # Create application
     application = Application.builder().token(Config.TELEGRAM_BOT_TOKEN).build()
@@ -50,6 +55,7 @@ def main():
     try:
         logger.info("🚀 Starting AiAgentApiBot...")
         logger.info(f"Environment: {Config.ENVIRONMENT}")
+        logger.info(f"Bot Username: {Config.BOT_USERNAME}")
         
         # Setup application
         application = setup_application()
@@ -63,6 +69,8 @@ def main():
         
     except Exception as e:
         logger.error(f"❌ Fatal error: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 if __name__ == "__main__":
