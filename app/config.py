@@ -13,7 +13,7 @@ class Config:
     BOT_USERNAME = os.getenv("BOT_USERNAME", "AiAgentApibot")
     
     # Application Settings
-    ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+    ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     
     # Data Storage
@@ -37,7 +37,10 @@ class Config:
     def validate(cls):
         """Validate required configuration"""
         if not cls.TELEGRAM_BOT_TOKEN:
-            raise ValueError("TELEGRAM_BOT_TOKEN is not set in environment variables")
+            raise ValueError(
+                "TELEGRAM_BOT_TOKEN is not set in environment variables!\n"
+                "Please add it to Railway's Variables tab."
+            )
         return True
 
 # Setup logging
